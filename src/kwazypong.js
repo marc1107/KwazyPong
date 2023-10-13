@@ -1,5 +1,5 @@
 var gl;
-var shaderPlayerPile, shaderBall;
+var shaderPlayerPile, shaderBall, shaderObject;
 var mousePositionUniform, ballPositionUniform;
 var mouseX, mouseY;
 var clipPlayerX, clipPlayerY, clipBallX, clipBallY;
@@ -8,6 +8,7 @@ var speed;
 var bufferPlayerPile, bufferBall;
 var gameStarted;
 var n;
+var arrBufferObjects;
 
 function init() {
   // Set up the canvas
@@ -31,6 +32,12 @@ function init() {
 
   shaderBall = initShaders(gl, "vertex-shader-ball", "fragment-shader-ball");
 
+  shaderObject = initShaders(
+    gl,
+    "vertex-shader-object",
+    "fragment-shader-object"
+  );
+
   // Force the WebGL context to clear the color buffer
   gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -47,6 +54,7 @@ function init() {
   moveBallUp = 1.0;
   n = 1000;
   gameStarted = 0;
+  arrBufferObjects = [];
 
   colorUniform = gl.getUniformLocation(shaderPlayerPile, "color");
 
@@ -61,6 +69,7 @@ function init() {
 
   setupPlayerPile();
   setupBall();
+  setupObjects();
   render();
 }
 
@@ -78,6 +87,51 @@ function setupPlayerPile() {
   bufferPlayerPile = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, bufferPlayerPile);
   gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW);
+}
+
+function setupObjects() {
+  var posY = 1;
+  // left col
+  for (var i = 0; i < 7; i++) {
+    var p0 = vec2(-0.385, posY - 0.05);
+    var p1 = vec2(-0.385, posY);
+    var p2 = vec2(-0.135, posY - 0.05);
+    var p3 = vec2(-0.135, posY);
+    setupObject(p0, p1, p2, p3);
+    posY -= 0.06;
+  }
+  posY = 1;
+  // right col
+  for (var i = 0; i < 7; i++) {
+    var p0 = vec2(0.385, posY - 0.05);
+    var p1 = vec2(0.385, posY);
+    var p2 = vec2(0.135, posY - 0.05);
+    var p3 = vec2(0.135, posY);
+    setupObject(p0, p1, p2, p3);
+    posY -= 0.06;
+  }
+
+  posY = 1;
+  // middle col
+  for (var i = 0; i < 5; i++) {
+    posY -= 0.06;
+  }
+  for (var i = 0; i < 2; i++) {
+    var p0 = vec2(-0.125, posY - 0.05);
+    var p1 = vec2(-0.125, posY);
+    var p2 = vec2(0.125, posY - 0.05);
+    var p3 = vec2(0.125, posY);
+    setupObject(p0, p1, p2, p3);
+    posY -= 0.06;
+  }
+}
+
+function setupObject(p0, p1, p2, p3) {
+  arrayofPoints = [p0, p1, p2, p3];
+
+  arrBufferObjects.push(gl.createBuffer());
+  gl.bindBuffer(gl.ARRAY_BUFFER, arrBufferObjects[arrBufferObjects.length - 1]);
+  gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayofPoints), gl.STATIC_DRAW);
 }
 
 function setupBall() {
@@ -189,6 +243,39 @@ function render() {
   gl.uniform4f(myColorBall, 0.5, 0.0, 1.0, 1.0);
 
   gl.drawArrays(gl.TRIANGLE_FAN, 0, n);
+
+  // draw the objects
+  gl.useProgram(shaderObject);
+
+  var col = 0;
+  for (var i = 0; i < arrBufferObjects.length; i++) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, arrBufferObjects[i]);
+
+    // Create a pointer that iterates over the
+    // array of points in the shader code
+    var myPositionObject = gl.getAttribLocation(shaderObject, "myPosition");
+    gl.vertexAttribPointer(myPositionObject, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(myPositionObject);
+
+    var myColorObject = gl.getUniformLocation(shaderObject, "shapecolor");
+
+    if (i % 7 == 0) {
+      col = 0;
+    }
+
+    if (col == 0) {
+      gl.uniform4f(myColorObject, 1.0, 0.0, 0.0, 1.0);
+      col = 1;
+    } else if (col == 1) {
+      gl.uniform4f(myColorObject, 0.0, 0.0, 1.0, 1.0);
+      col = 2;
+    } else if (col == 2) {
+      gl.uniform4f(myColorObject, 0.0, 1.0, 0.0, 1.0);
+      col = 0;
+    }
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
 
   requestAnimFrame(render);
 }

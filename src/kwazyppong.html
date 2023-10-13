@@ -62,6 +62,25 @@
       	gl_FragColor = shapecolor;
       }
     </script>
+
+    <script type="x-shader/x-vertex" id="vertex-shader-object">
+         attribute vec4 myPosition;
+
+         void main() {
+         	gl_Position = myPosition;
+
+           gl_PointSize = 1.0;
+         }
+    </script>
+
+    <script type="x-shader/x-fragment" id="fragment-shader-object">
+         precision mediump float;
+      uniform vec4 shapecolor;
+
+      void main() {
+      	gl_FragColor = shapecolor;
+      }
+    </script>
   </head>
 
   <!-- change that the color works -->
