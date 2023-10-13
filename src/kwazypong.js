@@ -5,15 +5,15 @@ var thetaUniform;
 var theta;
 var flag;
 var mousePositionUniform;
+var ballPositionUniform;
 var mouseX;
 var mouseY;
-var clipX;
-var clipY;
-var moveRight;
-var moveUp;
-var nudge;
+var clipPlayerX, clipPlayerY, clipBallX, clipBallY;
+var moveRight, moveUp, moveBallRight, moveBallUp;
+var speed;
 var n;
 var bufferPlayerPile, bufferBall;
+var gameStarted;
 
 function init() {
   // Set up the canvas
@@ -44,12 +44,17 @@ function init() {
 
   mouseX = 0.0;
   mouseY = 0.0;
-  clipX = 0.0;
-  clipY = 0.0;
-  nudge = 0.001;
+  clipPlayerX = 0.0;
+  clipPlayerY = 0.0;
+  clipBallX = 0.0;
+  clipBallY = 0.0;
+  speed = 0.001;
   moveRight = 0.0;
   moveUp = 0.0;
+  moveBallRight = 0.0;
+  moveBallUp = 1.0;
   n = 1000;
+  gameStarted = 0;
 
   colorUniform = gl.getUniformLocation(shaderPlayerPile, "color");
 
@@ -59,9 +64,28 @@ function init() {
   );
   gl.uniform2f(mousePositionUniform, mouseX, mouseY);
 
+  ballPositionUniform = gl.getUniformLocation(shaderBall, "position");
+  gl.uniform2f(ballPositionUniform, clipBallX, clipBallY);
+
   setupPlayerPile();
   setupBall();
   render();
+}
+
+function setupPlayerPile() {
+  // Enter array set up code here
+  var p0 = vec2(-0.2, -1);
+  var p1 = vec2(-0.2, -0.9);
+  var p2 = vec2(0.2, -1);
+  var p3 = vec2(0.2, -0.9);
+  arrayOfPoints = [p0, p1, p2, p3];
+
+  // Create a buffer on the graphics card,
+  // and send array to the buffer for use
+  // in the shaders
+  bufferPlayerPile = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bufferPlayerPile);
+  gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW);
 }
 
 function setupBall() {
@@ -74,7 +98,7 @@ function setupBall() {
   var i = 0;
 
   var a = 0.0;
-  var b = 0.0;
+  var b = -0.85;
   var c = 0.05;
   var d = 0.05;
 
@@ -93,22 +117,6 @@ function setupBall() {
     flatten(arrayOfPointsForCircle),
     gl.STATIC_DRAW
   );
-}
-
-function setupPlayerPile() {
-  // Enter array set up code here
-  var p0 = vec2(-0.2, -1);
-  var p1 = vec2(-0.2, -0.9);
-  var p2 = vec2(0.2, -1);
-  var p3 = vec2(0.2, -0.9);
-  arrayOfPoints = [p0, p1, p2, p3];
-
-  // Create a buffer on the graphics card,
-  // and send array to the buffer for use
-  // in the shaders
-  bufferPlayerPile = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, bufferPlayerPile);
-  gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW);
 }
 
 function changeDirection(event) {
@@ -130,6 +138,10 @@ function changeDirection(event) {
   }
 }
 
+function startGame() {
+  gameStarted = 1;
+}
+
 /* function moveShape(event) {
   mouseX = event.clientX;
   mouseY = event.clientY;
@@ -147,10 +159,10 @@ function render() {
   // draw the player pile
   gl.useProgram(shaderPlayerPile);
 
-  clipX += moveRight * nudge;
-  clipY += moveUp * nudge;
+  /* clipPlayerX += moveRight;
+  clipPlayerY += moveUp;
 
-  gl.uniform2f(mousePositionUniform, clipX, clipY);
+  gl.uniform2f(mousePositionUniform, clipPlayerX, clipPlayerY); */
 
   gl.bindBuffer(gl.ARRAY_BUFFER, bufferPlayerPile);
 
@@ -170,6 +182,11 @@ function render() {
 
   // draw the ball
   gl.useProgram(shaderBall);
+
+  clipBallX += moveBallRight * speed * gameStarted;
+  clipBallY += moveBallUp * speed * gameStarted;
+
+  gl.uniform2f(ballPositionUniform, clipBallX, clipBallY);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, bufferBall);
 
