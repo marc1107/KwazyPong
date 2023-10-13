@@ -142,15 +142,15 @@ function startGame() {
   gameStarted = 1;
 }
 
-/* function moveShape(event) {
+function movePlayerPile(event) {
   mouseX = event.clientX;
   mouseY = event.clientY;
 
-  clipX = (2.0 * mouseX) / 512.0 - 1.0;
-  clipY = -((2.0 * mouseY) / 512.0 - 1.0);
+  clipPlayerX = (2.0 * mouseX) / 512.0 - 1.0;
+  //clipPlayerX = mouseX;
 
-  gl.uniform2f(mousePositionUniform, clipX, clipY);
-} */
+  gl.uniform2f(mousePositionUniform, clipPlayerX, clipPlayerY);
+}
 
 function render() {
   // Force WebGL context to clear the color buffer
@@ -159,10 +159,7 @@ function render() {
   // draw the player pile
   gl.useProgram(shaderPlayerPile);
 
-  /* clipPlayerX += moveRight;
-  clipPlayerY += moveUp;
-
-  gl.uniform2f(mousePositionUniform, clipPlayerX, clipPlayerY); */
+  gl.uniform2f(mousePositionUniform, clipPlayerX, clipPlayerY);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, bufferPlayerPile);
 
