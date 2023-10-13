@@ -1,19 +1,13 @@
 var gl;
-var shaderPlayerPile;
-var shaderBall;
-var thetaUniform;
-var theta;
-var flag;
-var mousePositionUniform;
-var ballPositionUniform;
-var mouseX;
-var mouseY;
+var shaderPlayerPile, shaderBall;
+var mousePositionUniform, ballPositionUniform;
+var mouseX, mouseY;
 var clipPlayerX, clipPlayerY, clipBallX, clipBallY;
 var moveRight, moveUp, moveBallRight, moveBallUp;
 var speed;
-var n;
 var bufferPlayerPile, bufferBall;
 var gameStarted;
+var n;
 
 function init() {
   // Set up the canvas
@@ -39,8 +33,6 @@ function init() {
 
   // Force the WebGL context to clear the color buffer
   gl.clear(gl.COLOR_BUFFER_BIT);
-
-  flag = 0;
 
   mouseX = 0.0;
   mouseY = 0.0;
