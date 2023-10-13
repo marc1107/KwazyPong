@@ -1,5 +1,6 @@
 var gl;
-var myShaderProgram;
+var shaderPlayerPile;
+var shaderBall;
 var thetaUniform;
 var theta;
 var flag;
@@ -11,6 +12,8 @@ var clipY;
 var moveRight;
 var moveUp;
 var nudge;
+var n;
+var bufferPlayerPile, bufferBall;
 
 function init() {
   // Set up the canvas
@@ -26,19 +29,16 @@ function init() {
   // Set up the background color
   gl.clearColor(0.8, 0.8, 0.8, 1.0);
 
-  myShaderProgram = initShaders(
+  shaderPlayerPile = initShaders(
     gl,
-    "vertex-shader-hexagon",
-    "fragment-shader-hexagon"
+    "vertex-shader-playerpile",
+    "fragment-shader-playerpile"
   );
-  gl.useProgram(myShaderProgram);
+
+  shaderBall = initShaders(gl, "vertex-shader-ball", "fragment-shader-ball");
 
   // Force the WebGL context to clear the color buffer
   gl.clear(gl.COLOR_BUFFER_BIT);
-
-  theta = 0.0;
-  thetaUniform = gl.getUniformLocation(myShaderProgram, "theta");
-  gl.uniform1f(thetaUniform, theta);
 
   flag = 0;
 
@@ -49,18 +49,50 @@ function init() {
   nudge = 0.001;
   moveRight = 0.0;
   moveUp = 0.0;
+  n = 1000;
 
-  colorUniform = gl.getUniformLocation(myShaderProgram, "color");
+  colorUniform = gl.getUniformLocation(shaderPlayerPile, "color");
 
   mousePositionUniform = gl.getUniformLocation(
-    myShaderProgram,
+    shaderPlayerPile,
     "mousePosition"
   );
   gl.uniform2f(mousePositionUniform, mouseX, mouseY);
 
   setupPlayerPile();
+  setupBall();
+  render();
+}
 
-  drawPlayerPile();
+function setupBall() {
+  var arrayOfPointsForCircle = [];
+
+  var theta = 0.0;
+  var x = 0.0;
+  var y = 0.0;
+
+  var i = 0;
+
+  var a = 0.0;
+  var b = 0.0;
+  var c = 0.05;
+  var d = 0.05;
+
+  for (i = 0; i < n; i++) {
+    theta = (2 * Math.PI * i) / n;
+    x = a + c * Math.cos(theta);
+    y = b + d * Math.sin(theta);
+    var p = vec2(x, y);
+    arrayOfPointsForCircle.push(p);
+  }
+
+  bufferBall = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bufferBall);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    flatten(arrayOfPointsForCircle),
+    gl.STATIC_DRAW
+  );
 }
 
 function setupPlayerPile() {
@@ -74,18 +106,9 @@ function setupPlayerPile() {
   // Create a buffer on the graphics card,
   // and send array to the buffer for use
   // in the shaders
-  var bufferId = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
+  bufferPlayerPile = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bufferPlayerPile);
   gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW);
-
-  // Create a pointer that iterates over the
-  // array of points in the shader code
-  var myPositionAttribute = gl.getAttribLocation(myShaderProgram, "myPosition");
-  gl.vertexAttribPointer(myPositionAttribute, 2, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(myPositionAttribute);
-
-  var myColorUniform = gl.getUniformLocation(myShaderProgram, "shapecolor");
-  gl.uniform4f(myColorUniform, 0.0, 0.0, 0.0, 1.0);
 }
 
 function changeDirection(event) {
@@ -117,18 +140,49 @@ function changeDirection(event) {
   gl.uniform2f(mousePositionUniform, clipX, clipY);
 } */
 
-function drawPlayerPile() {
+function render() {
   // Force WebGL context to clear the color buffer
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  theta += 0.01 * flag; // change this value to change the rotation speed
+  // draw the player pile
+  gl.useProgram(shaderPlayerPile);
+
   clipX += moveRight * nudge;
   clipY += moveUp * nudge;
 
-  gl.uniform1f(thetaUniform, theta);
   gl.uniform2f(mousePositionUniform, clipX, clipY);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, bufferPlayerPile);
+
+  // Create a pointer that iterates over the
+  // array of points in the shader code
+  var myPositionPlayerPile = gl.getAttribLocation(
+    shaderPlayerPile,
+    "myPosition"
+  );
+  gl.vertexAttribPointer(myPositionPlayerPile, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(myPositionPlayerPile);
+
+  var myColorPlayerPile = gl.getUniformLocation(shaderPlayerPile, "shapecolor");
+  gl.uniform4f(myColorPlayerPile, 0.0, 0.0, 0.0, 1.0);
 
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-  requestAnimFrame(drawPlayerPile);
+  // draw the ball
+  gl.useProgram(shaderBall);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, bufferBall);
+
+  // Create a pointer that iterates over the
+  // array of points in the shader code
+  var myPositionBall = gl.getAttribLocation(shaderBall, "myPosition");
+  gl.vertexAttribPointer(myPositionBall, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(myPositionBall);
+
+  var myColorBall = gl.getUniformLocation(shaderBall, "shapecolor");
+  gl.uniform4f(myColorBall, 0.5, 0.0, 1.0, 1.0);
+
+  gl.drawArrays(gl.TRIANGLE_FAN, 0, n);
+
+  requestAnimFrame(render);
 }

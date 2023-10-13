@@ -8,7 +8,7 @@
     <script type="text/javascript" src="../Common/MV.js"></script>
     <script type="text/javascript" src="kwazypong.js"></script>
 
-    <script type="x-shader/x-vertex" id="vertex-shader-hexagon">
+    <script type="x-shader/x-vertex" id="vertex-shader-playerpile">
           attribute vec4 myPosition;
           uniform float theta;
       uniform vec2 mousePosition;
@@ -32,7 +32,40 @@
           }
     </script>
 
-    <script type="x-shader/x-fragment" id="fragment-shader-hexagon">
+    <script type="x-shader/x-fragment" id="fragment-shader-playerpile">
+         precision mediump float;
+      uniform vec4 shapecolor;
+
+      void main() {
+      	gl_FragColor = shapecolor;
+      }
+    </script>
+
+		<script type="x-shader/x-vertex" id="vertex-shader-ball">
+          attribute vec4 myPosition;
+          uniform float theta;
+      uniform vec2 mousePosition;
+
+       void main() {
+       	float xi = myPosition.x;
+       	float yi = myPosition.y;
+
+       	float xf;
+       	float yf;
+
+       	xf = xi * cos(theta) + yi * sin(theta) + mousePosition.x;
+       	yf = -xi * sin(theta) + yi * cos(theta) + mousePosition.y;
+
+       	gl_Position.x = xf;
+       	gl_Position.y = yf;
+       	gl_Position.z = 0.0;
+       	gl_Position.w = 1.0;
+
+            gl_PointSize = 1.0;
+          }
+    </script>
+
+    <script type="x-shader/x-fragment" id="fragment-shader-ball">
          precision mediump float;
       uniform vec4 shapecolor;
 
