@@ -10,7 +10,6 @@
 
     <script type="x-shader/x-vertex" id="vertex-shader-playerpile">
           attribute vec4 myPosition;
-          uniform float theta;
       uniform vec2 mousePosition;
 
        void main() {
@@ -20,8 +19,8 @@
        	float xf;
        	float yf;
 
-       	xf = xi * cos(theta) + yi * sin(theta) + mousePosition.x;
-       	yf = -xi * sin(theta) + yi * cos(theta) + mousePosition.y;
+       	xf = xi + mousePosition.x;
+       	yf = yi + mousePosition.y;
 
        	gl_Position.x = xf;
        	gl_Position.y = yf;
@@ -63,11 +62,30 @@
       	gl_FragColor = shapecolor;
       }
     </script>
+
+    <script type="x-shader/x-vertex" id="vertex-shader-object">
+         attribute vec4 myPosition;
+
+         void main() {
+         	gl_Position = myPosition;
+
+           gl_PointSize = 1.0;
+         }
+    </script>
+
+    <script type="x-shader/x-fragment" id="fragment-shader-object">
+         precision mediump float;
+      uniform vec4 shapecolor;
+
+      void main() {
+      	gl_FragColor = shapecolor;
+      }
+    </script>
   </head>
 
   <!-- change that the color works -->
   <body style="margin: 0" onload="init()" onkeydown="changeDirection(event)">
-    <canvas width="512" height="512" id="gl-canvas" onclick="moveShape(event)">
+    <canvas width="512" height="512" id="gl-canvas" onmousemove="movePlayerPile(event)">
     </canvas>
     <button id="startGame" onclick="startGame()">Start Game</button>
   </body>
