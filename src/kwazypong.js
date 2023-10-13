@@ -1,195 +1,152 @@
 var gl;
 var myShaderProgram;
-var alpha, beta, gamma;
-var tx, ty;
-var sx, sy;
+var thetaUniform;
+var theta;
+var flag;
+var mousePositionUniform;
+var mouseX;
+var mouseY;
+var clipX;
+var clipY;
+var moveRight;
+var moveUp;
+var nudge;
 
 function init() {
+  // Set up the canvas
   var canvas = document.getElementById("gl-canvas");
   gl = WebGLUtils.setupWebGL(canvas);
-
   if (!gl) {
     alert("WebGL is not available");
   }
 
-  gl.viewport(0, 0, 512, 512);
+  // Set up the viewport
+  gl.viewport(0, 0, 512, 512); // x, y, width, height
 
+  // Set up the background color
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-  myShaderProgram = initShaders(gl, "vertex-shader", "fragment-shader");
+  myShaderProgram = initShaders(
+    gl,
+    "vertex-shader-hexagon",
+    "fragment-shader-hexagon"
+  );
   gl.useProgram(myShaderProgram);
 
-  // will include depth test to render faces correctly!
-  gl.enable(gl.DEPTH_TEST);
+  // Force the WebGL context to clear the color buffer
+  gl.clear(gl.COLOR_BUFFER_BIT);
 
-  setupTetra();
+  theta = 0.0;
+  thetaUniform = gl.getUniformLocation(myShaderProgram, "theta");
+  gl.uniform1f(thetaUniform, theta);
 
-  render();
-}
+  flag = 0;
 
-function setupTetra() {
-  // Vertices of Tetrahedron
-  var vertices = [
-    vec4(-0.25, -0.25, -0.25, 1.0), // p0
-    vec4(0.25, -0.25, -0.25, 1.0), // p1
-    vec4(0.0, 0.25, -0.25, 1.0), // p2
-    vec4(0.0, 0.0, 0.25, 1.0), // p3
-  ];
+  mouseX = 0.0;
+  mouseY = 0.0;
+  clipX = 0.0;
+  clipY = 0.0;
+  nudge = 0.001;
+  moveRight = 1.0;
+  moveUp = 0.0;
 
-  // Colors at Vertices of Tetrahedron
-  var vertexColors = [
-    vec4(0.0, 0.0, 1.0, 1.0), // p0
-    vec4(0.0, 1.0, 0.0, 1.0), // p1
-    vec4(1.0, 0.0, 0.0, 1.0), // p2
-    vec4(1.0, 1.0, 0.0, 1.0), // p3
-  ];
+  colorUniform = gl.getUniformLocation(myShaderProgram, "color");
 
-  // Every face on the cube is a triangle,
-  // each triangle is described by three indices into
-  // the array "vertices"
-  var indexList = [
-    0,
-    1,
-    2, // front face
-    0,
-    2,
-    3, // right face
-    0,
-    3,
-    1, // left face
-    1,
-    3,
-    2, // bottom face
-  ];
-
-  alpha = 0.0;
-  beta = 0.0;
-  gamma = 0.0;
-  tx = 0.0;
-  ty = 0.0;
-  sx = 1.0;
-  sy = 1.0;
-
-  // Code here to handle putting above lists into buffers
-  var vertexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
-
-  var myPosition = gl.getAttribLocation(myShaderProgram, "myPosition");
-  gl.vertexAttribPointer(myPosition, 4, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(myPosition);
-
-  var colorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, flatten(vertexColors), gl.STATIC_DRAW);
-
-  var myColor = gl.getAttribLocation(myShaderProgram, "myColor");
-  gl.vertexAttribPointer(myColor, 4, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(myColor);
-
-  // will populate to create buffer for indices
-  var iBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuffer);
-  gl.bufferData(
-    gl.ELEMENT_ARRAY_BUFFER,
-    new Uint8Array(indexList),
-    gl.STATIC_DRAW
+  mousePositionUniform = gl.getUniformLocation(
+    myShaderProgram,
+    "mousePosition"
   );
+  gl.uniform2f(mousePositionUniform, mouseX, mouseY);
 
-  sxLoc = gl.getUniformLocation(myShaderProgram, "sx");
-  gl.uniform1f(sxLoc, sx);
+  setupHexagon();
 
-  syLoc = gl.getUniformLocation(myShaderProgram, "sy");
-  gl.uniform1f(syLoc, sy);
+  drawHexagon();
 }
 
-function render() {
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+function setupHexagon() {
+  // Enter array set up code here
+  var p0 = vec2(-0.3, 0);
+  var p1 = vec2(-0.1, 0.2);
+  var p2 = vec2(-0.1, -0.2);
+  var p3 = vec2(0.1, 0.2);
+  var p4 = vec2(0.1, -0.2);
+  var p5 = vec2(0.3, 0);
+  arrayOfPoints = [p0, p1, p2, p3, p4, p5];
 
-  // will populate to render the tetrahedron
-  gl.drawElements(gl.TRIANGLES, 12, gl.UNSIGNED_BYTE, 0);
-  requestAnimationFrame(render);
+  // Create a buffer on the graphics card,
+  // and send array to the buffer for use
+  // in the shaders
+  var bufferId = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
+  gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW);
+
+  // Create a pointer that iterates over the
+  // array of points in the shader code
+  var myPositionAttribute = gl.getAttribLocation(myShaderProgram, "myPosition");
+  gl.vertexAttribPointer(myPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(myPositionAttribute);
+
+  var myColorUniform = gl.getUniformLocation(myShaderProgram, "shapecolor");
+  gl.uniform4f(myColorUniform, 0.812, 0.27, 0.125, 1.0);
 }
 
-function rotateAroundX() {
-  alpha += 0.1;
-  alphaLoc = gl.getUniformLocation(myShaderProgram, "alpha");
-  gl.uniform1f(alphaLoc, alpha);
+function startRotation() {
+  flag = 1;
 }
 
-function rotateAroundY() {
-  beta += 0.1;
-  betaLoc = gl.getUniformLocation(myShaderProgram, "beta");
-  gl.uniform1f(betaLoc, beta);
+function stopRotation() {
+  flag = 0;
 }
 
-function rotateAroundZ() {
-  gamma += 0.1;
-  gammaLoc = gl.getUniformLocation(myShaderProgram, "gamma");
-  gl.uniform1f(gammaLoc, gamma);
-}
+function changeDirection(event) {
+  // a = 65, d = 68, s = 83, w = 87
+  var keyCode = event.keyCode;
 
-function translateX(amount) {
-  tx += amount;
-  txLoc = gl.getUniformLocation(myShaderProgram, "tx");
-  gl.uniform1f(txLoc, tx);
-}
-
-function translateY(amount) {
-  ty += amount;
-  tyLoc = gl.getUniformLocation(myShaderProgram, "ty");
-  gl.uniform1f(tyLoc, ty);
-}
-
-function scaleX(amount) {
-  sx += amount;
-  sxLoc = gl.getUniformLocation(myShaderProgram, "sx");
-  gl.uniform1f(sxLoc, sx);
-}
-
-function scaleY(amount) {
-  sy += amount;
-  syLoc = gl.getUniformLocation(myShaderProgram, "sy");
-  gl.uniform1f(syLoc, sy);
-}
-
-function transform(event) {
-  // show the keycode as a popup alert
-  var key = event.keyCode;
-
-  // rotation, translation, and scaling
-  if (key == 88) {
-    // x
-    rotateAroundX();
-  } else if (key == 89) {
-    // y
-    rotateAroundY();
-  } else if (key == 90) {
-    // z
-    rotateAroundZ();
-  } else if (key == 65) {
-    // a
-    translateX(-0.1);
-  } else if (key == 68) {
-    // d
-    translateX(0.1);
-  } else if (key == 83) {
-    // s
-    translateY(-0.1);
-  } else if (key == 87) {
-    // w
-    translateY(0.1);
-  } else if (key == 37) {
-    // left arrow
-    scaleX(-0.1);
-  } else if (key == 39) {
-    // right arrow
-    scaleX(0.1);
-  } else if (key == 38) {
-    // up arrow
-    scaleY(0.1);
-  } else if (key == 40) {
-    // down arrow
-    scaleY(-0.1);
+  if (keyCode == 65) {
+    moveRight = -1;
+    moveUp = 0;
+  } else if (keyCode == 68) {
+    moveRight = 1;
+    moveUp = 0;
+  } else if (keyCode == 83) {
+    moveRight = 0;
+    moveUp = -1;
+  } else if (keyCode == 87) {
+    moveRight = 0;
+    moveUp = 1;
   }
+}
+
+function increaseSpeed() {
+  nudge *= 2;
+}
+
+function decreaseSpeed() {
+  nudge /= 2;
+}
+
+function moveShape(event) {
+  mouseX = event.clientX;
+  mouseY = event.clientY;
+
+  clipX = (2.0 * mouseX) / 512.0 - 1.0;
+  clipY = -((2.0 * mouseY) / 512.0 - 1.0);
+
+  gl.uniform2f(mousePositionUniform, clipX, clipY);
+}
+
+function drawHexagon() {
+  // Force WebGL context to clear the color buffer
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  theta += 0.01 * flag; // change this value to change the rotation speed
+  clipX += moveRight * nudge;
+  clipY += moveUp * nudge;
+
+  gl.uniform1f(thetaUniform, theta);
+  gl.uniform2f(mousePositionUniform, clipX, clipY);
+
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 6);
+
+  requestAnimFrame(drawHexagon);
 }
