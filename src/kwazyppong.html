@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>2D Shapes</title>
+    <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../Common/initShaders.js"></script>
+    <script type="text/javascript" src="../Common/MV.js"></script>
+    <script type="text/javascript" src="kwazypong.js"></script>
+
+    <script type="x-shader/x-vertex" id="vertex-shader-hexagon">
+          attribute vec4 myPosition;
+          uniform float theta;
+      uniform vec2 mousePosition;
+
+       void main() {
+       	float xi = myPosition.x;
+       	float yi = myPosition.y;
+
+       	float xf;
+       	float yf;
+
+       	xf = xi * cos(theta) + yi * sin(theta) + mousePosition.x;
+       	yf = -xi * sin(theta) + yi * cos(theta) + mousePosition.y;
+
+       	gl_Position.x = xf;
+       	gl_Position.y = yf;
+       	gl_Position.z = 0.0;
+       	gl_Position.w = 1.0;
+
+            gl_PointSize = 1.0;
+          }
+    </script>
+
+    <script type="x-shader/x-fragment" id="fragment-shader-hexagon">
+         precision mediump float;
+      uniform vec4 shapecolor;
+
+      void main() {
+      	gl_FragColor = shapecolor;
+      }
+    </script>
+  </head>
+
+  <!-- change that the color works -->
+  <body style="margin: 0" onload="init()" onkeydown="changeDirection(event)">
+    <canvas width="512" height="512" id="gl-canvas" onclick="moveShape(event)">
+    </canvas>
+    <button id="increaseSpeed" onclick="increaseSpeed()">Increase Speed</button>
+    <button id="decreaseSpeed" onclick="decreaseSpeed()">Decrease Speed</button>
+    <button id="startRotation" onclick="startRotation()">Start Rotation</button>
+    <button id="stopRotation" onclick="stopRotation()">Stop Rotation</button>
+  </body>
+</html>
