@@ -24,7 +24,7 @@ function init() {
   gl.viewport(0, 0, 512, 512); // x, y, width, height
 
   // Set up the background color
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clearColor(0.8, 0.8, 0.8, 1.0);
 
   myShaderProgram = initShaders(
     gl,
@@ -47,7 +47,7 @@ function init() {
   clipX = 0.0;
   clipY = 0.0;
   nudge = 0.001;
-  moveRight = 1.0;
+  moveRight = 0.0;
   moveUp = 0.0;
 
   colorUniform = gl.getUniformLocation(myShaderProgram, "color");
@@ -58,20 +58,18 @@ function init() {
   );
   gl.uniform2f(mousePositionUniform, mouseX, mouseY);
 
-  setupHexagon();
+  setupPlayerPile();
 
-  drawHexagon();
+  drawPlayerPile();
 }
 
-function setupHexagon() {
+function setupPlayerPile() {
   // Enter array set up code here
-  var p0 = vec2(-0.3, 0);
-  var p1 = vec2(-0.1, 0.2);
-  var p2 = vec2(-0.1, -0.2);
-  var p3 = vec2(0.1, 0.2);
-  var p4 = vec2(0.1, -0.2);
-  var p5 = vec2(0.3, 0);
-  arrayOfPoints = [p0, p1, p2, p3, p4, p5];
+  var p0 = vec2(-0.2, -1);
+  var p1 = vec2(-0.2, -0.9);
+  var p2 = vec2(0.2, -1);
+  var p3 = vec2(0.2, -0.9);
+  arrayOfPoints = [p0, p1, p2, p3];
 
   // Create a buffer on the graphics card,
   // and send array to the buffer for use
@@ -87,15 +85,7 @@ function setupHexagon() {
   gl.enableVertexAttribArray(myPositionAttribute);
 
   var myColorUniform = gl.getUniformLocation(myShaderProgram, "shapecolor");
-  gl.uniform4f(myColorUniform, 0.812, 0.27, 0.125, 1.0);
-}
-
-function startRotation() {
-  flag = 1;
-}
-
-function stopRotation() {
-  flag = 0;
+  gl.uniform4f(myColorUniform, 0.0, 0.0, 0.0, 1.0);
 }
 
 function changeDirection(event) {
@@ -117,15 +107,7 @@ function changeDirection(event) {
   }
 }
 
-function increaseSpeed() {
-  nudge *= 2;
-}
-
-function decreaseSpeed() {
-  nudge /= 2;
-}
-
-function moveShape(event) {
+/* function moveShape(event) {
   mouseX = event.clientX;
   mouseY = event.clientY;
 
@@ -133,9 +115,9 @@ function moveShape(event) {
   clipY = -((2.0 * mouseY) / 512.0 - 1.0);
 
   gl.uniform2f(mousePositionUniform, clipX, clipY);
-}
+} */
 
-function drawHexagon() {
+function drawPlayerPile() {
   // Force WebGL context to clear the color buffer
   gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -146,7 +128,7 @@ function drawHexagon() {
   gl.uniform1f(thetaUniform, theta);
   gl.uniform2f(mousePositionUniform, clipX, clipY);
 
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 6);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-  requestAnimFrame(drawHexagon);
+  requestAnimFrame(drawPlayerPile);
 }
