@@ -53,7 +53,7 @@ function init() {
   clipPlayerY = 0.0;
   clipBallX = 0.0;
   clipBallY = 0.0;
-  speed = 0.001;
+  speed = 0.01;
   moveRight = 0.0;
   moveUp = 0.0;
   moveBallRight = 0.0;
