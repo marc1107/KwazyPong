@@ -243,6 +243,9 @@ function movePlayerPile(event) {
 
 function gameOver() {
   gameStarted = 0;
+  // show a text that the player lost
+  var text = document.getElementById("text");
+  text.innerHTML = "You lost!";
 }
 
 function gameWon() {
