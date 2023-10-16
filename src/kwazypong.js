@@ -1,11 +1,11 @@
 var gl;
-var shaderPlayerPile, shaderBall, shaderObject;
+var shaderPlayerPile, shaderBall, shaderObject, shaderGoalObject;
 var mousePositionUniform, ballPositionUniform;
 var mouseX, mouseY;
 var clipPlayerX, clipPlayerY, clipBallX, clipBallY;
 var moveRight, moveUp, moveBallRight, moveBallUp;
 var speed;
-var bufferPlayerPile, bufferBall;
+var bufferPlayerPile, bufferBall, bufferGoalObject;
 var gameStarted;
 var n;
 var arrBufferObjects;
@@ -36,6 +36,12 @@ function init() {
     gl,
     "vertex-shader-object",
     "fragment-shader-object"
+  );
+
+  shaderGoalObject = initShaders(
+    gl,
+    "vertex-shader-goalobject",
+    "fragment-shader-goalobject"
   );
 
   // Force the WebGL context to clear the color buffer
@@ -69,6 +75,7 @@ function init() {
 
   setupPlayerPile();
   setupBall();
+  setupGoalObject();
   setupObjects();
   render();
 }
@@ -89,40 +96,57 @@ function setupPlayerPile() {
   gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW);
 }
 
+function setupGoalObject() {
+  // Enter array set up code here
+  var p0 = vec2(-0.1, 0.65);
+  var p1 = vec2(-0.1, 0.85);
+  var p2 = vec2(0.1, 0.65);
+  var p3 = vec2(0.1, 0.85);
+  arrayOfPoints = [p0, p1, p2, p3];
+
+  // Create a buffer on the graphics card,
+  // and send array to the buffer for use
+  // in the shaders
+  bufferGoalObject = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bufferGoalObject);
+  gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW);
+}
+
 function setupObjects() {
   var posY = 1;
+	var heightDiff = 0.11;
   // left col
   for (var i = 0; i < 7; i++) {
-    var p0 = vec2(-0.385, posY - 0.05);
-    var p1 = vec2(-0.385, posY);
-    var p2 = vec2(-0.135, posY - 0.05);
-    var p3 = vec2(-0.135, posY);
+    var p0 = vec2(-0.61, posY - 0.1);
+    var p1 = vec2(-0.61, posY);
+    var p2 = vec2(-0.21, posY - 0.1);
+    var p3 = vec2(-0.21, posY);
     setupObject(p0, p1, p2, p3);
-    posY -= 0.06;
+    posY -= heightDiff;
   }
   posY = 1;
   // right col
   for (var i = 0; i < 7; i++) {
-    var p0 = vec2(0.385, posY - 0.05);
-    var p1 = vec2(0.385, posY);
-    var p2 = vec2(0.135, posY - 0.05);
-    var p3 = vec2(0.135, posY);
+    var p0 = vec2(0.61, posY - 0.1);
+    var p1 = vec2(0.61, posY);
+    var p2 = vec2(0.21, posY - 0.1);
+    var p3 = vec2(0.21, posY);
     setupObject(p0, p1, p2, p3);
-    posY -= 0.06;
+    posY -= heightDiff;
   }
 
   posY = 1;
   // middle col
   for (var i = 0; i < 5; i++) {
-    posY -= 0.06;
+    posY -= heightDiff;
   }
   for (var i = 0; i < 2; i++) {
-    var p0 = vec2(-0.125, posY - 0.05);
-    var p1 = vec2(-0.125, posY);
-    var p2 = vec2(0.125, posY - 0.05);
-    var p3 = vec2(0.125, posY);
+    var p0 = vec2(-0.2, posY - 0.1);
+    var p1 = vec2(-0.2, posY);
+    var p2 = vec2(0.2, posY - 0.1);
+    var p3 = vec2(0.2, posY);
     setupObject(p0, p1, p2, p3);
-    posY -= 0.06;
+    posY -= heightDiff;
   }
 }
 
@@ -243,6 +267,20 @@ function render() {
   gl.uniform4f(myColorBall, 0.5, 0.0, 1.0, 1.0);
 
   gl.drawArrays(gl.TRIANGLE_FAN, 0, n);
+
+	// draw the goal object
+	gl.useProgram(shaderGoalObject);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, bufferGoalObject);
+
+  var myPositionGoalObject = gl.getAttribLocation(shaderGoalObject, "myPosition");
+  gl.vertexAttribPointer(myPositionGoalObject, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(myPositionGoalObject);
+
+  var myColorGoalObject = gl.getUniformLocation(shaderGoalObject, "shapecolor");
+  gl.uniform4f(myColorGoalObject, 0.83, 0.69, 0.22, 1.0);
+
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
   // draw the objects
   gl.useProgram(shaderObject);
