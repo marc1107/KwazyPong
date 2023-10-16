@@ -1,8 +1,13 @@
 var gl;
 var shaderPlayerPile, shaderBall, shaderObject, shaderGoalObject;
-var mousePositionUniform, ballPositionUniform;
+var mousePositionUniform, ballPositionUniform, goalObjectPositionUniform;
 var mouseX, mouseY;
-var clipPlayerX, clipPlayerY, clipBallX, clipBallY;
+var clipPlayerX,
+  clipPlayerY,
+  clipBallX,
+  clipBallY,
+  clipGoalObjectX,
+  clipGoalObjectY;
 var moveRight, moveUp, moveBallRight, moveBallUp;
 var speed;
 var bufferPlayerPile, bufferBall, bufferGoalObject;
@@ -53,6 +58,8 @@ function init() {
   clipPlayerY = -0.95;
   clipBallX = 0.0;
   clipBallY = -0.85;
+  clipGoalObjectX = 0.0;
+  clipGoalObjectY = 0.75;
   speed = 0.01;
   moveRight = 0.0;
   moveUp = 0.0;
@@ -72,6 +79,12 @@ function init() {
 
   ballPositionUniform = gl.getUniformLocation(shaderBall, "position");
   gl.uniform2f(ballPositionUniform, clipBallX, clipBallY);
+
+  goalObjectPositionUniform = gl.getUniformLocation(
+    shaderGoalObject,
+    "position"
+  );
+  gl.uniform2f(goalObjectPositionUniform, clipGoalObjectX, clipGoalObjectY);
 
   setupPlayerPile();
   setupBall();
@@ -96,25 +109,10 @@ function setupPlayerPile() {
   gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW);
 }
 
-function setupGoalObject() {
-  // Enter array set up code here
-  var p0 = vec2(-0.1, 0.65);
-  var p1 = vec2(-0.1, 0.85);
-  var p2 = vec2(0.1, 0.65);
-  var p3 = vec2(0.1, 0.85);
-  arrayOfPoints = [p0, p1, p2, p3];
-
-  // Create a buffer on the graphics card,
-  // and send array to the buffer for use
-  // in the shaders
-  bufferGoalObject = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, bufferGoalObject);
-  gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW);
-}
-
 function setupObjects() {
   var posY = 1;
   var heightDiff = 0.11;
+
   // left col
   for (var i = 0; i < 7; i++) {
     var p0 = vec2(-0.61, posY - 0.1);
@@ -189,6 +187,22 @@ function setupBall() {
   );
 }
 
+function setupGoalObject() {
+  // Enter array set up code here
+  var p0 = vec2(-0.1, -0.1);
+  var p1 = vec2(-0.1, 0.1);
+  var p2 = vec2(0.1, -0.1);
+  var p3 = vec2(0.1, 0.1);
+  arrayOfPoints = [p0, p1, p2, p3];
+
+  // Create a buffer on the graphics card,
+  // and send array to the buffer for use
+  // in the shaders
+  bufferGoalObject = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, bufferGoalObject);
+  gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW);
+}
+
 function changeDirection(event) {
   // a = 65, d = 68, s = 83, w = 87
   var keyCode = event.keyCode;
@@ -212,6 +226,11 @@ function startGame() {
   gameStarted = 1;
 }
 
+function resetGame() {
+  // reload the page
+  location.reload();
+}
+
 function movePlayerPile(event) {
   mouseX = event.clientX;
   mouseY = event.clientY;
@@ -224,6 +243,20 @@ function movePlayerPile(event) {
 
 function gameOver() {
   gameStarted = 0;
+}
+
+function gameWon() {
+  // check if the ball hits the goal object, then set gameStarted to 0
+  if (
+    clipBallY + 0.05 > clipGoalObjectY - 0.1 &&
+    clipBallX + 0.05 > clipGoalObjectX - 0.1 &&
+    clipBallX - 0.05 < clipGoalObjectX + 0.1
+  ) {
+    gameStarted = 0;
+    // show a text that the player won
+    var text = document.getElementById("text");
+    text.innerHTML = "You won!";
+  }
 }
 
 function moveBallUpInAngle() {
@@ -245,6 +278,7 @@ function moveBallUpInAngle() {
 }
 
 function ballCollision() {
+  gameWon();
   // Check if the ball hits the right wall
   if (clipBallX + 0.05 > 1.0) {
     moveBallRight *= -1.0;
@@ -325,6 +359,8 @@ function render() {
 
   // draw the goal object
   gl.useProgram(shaderGoalObject);
+
+  gl.uniform2f(goalObjectPositionUniform, clipGoalObjectX, clipGoalObjectY);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, bufferGoalObject);
 

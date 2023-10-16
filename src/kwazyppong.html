@@ -64,13 +64,17 @@
     </script>
 
     <script type="x-shader/x-vertex" id="vertex-shader-goalobject">
-         attribute vec4 myPosition;
+      attribute vec4 myPosition;
+      uniform vec2 position;
 
-         void main() {
-         	gl_Position = myPosition;
+      void main() {
+				gl_Position.x = myPosition.x + position.x;
+				gl_Position.y = myPosition.y + position.y;
+				gl_Position.z = 0.0;
+				gl_Position.w = 1.0;
 
-           gl_PointSize = 1.0;
-         }
+				gl_PointSize = 1.0;
+      }
     </script>
 
     <script type="x-shader/x-fragment" id="fragment-shader-goalobject">
@@ -107,5 +111,9 @@
     <canvas width="512" height="512" id="gl-canvas" onmousemove="movePlayerPile(event)">
     </canvas>
     <button id="startGame" onclick="startGame()">Start Game</button>
+		<button id="resetGame" onclick="resetGame()">Reset Game</button>
+		<!-- create a field which can show a text -->
+		<div id="text"></div>
+		<div id="score"></div>
   </body>
 </html>
