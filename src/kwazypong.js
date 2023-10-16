@@ -50,9 +50,9 @@ function init() {
   mouseX = 0.0;
   mouseY = 0.0;
   clipPlayerX = 0.0;
-  clipPlayerY = 0.0;
+  clipPlayerY = -0.95;
   clipBallX = 0.0;
-  clipBallY = 0.0;
+  clipBallY = -0.85;
   speed = 0.01;
   moveRight = 0.0;
   moveUp = 0.0;
@@ -82,10 +82,10 @@ function init() {
 
 function setupPlayerPile() {
   // Enter array set up code here
-  var p0 = vec2(-0.2, -1);
-  var p1 = vec2(-0.2, -0.9);
-  var p2 = vec2(0.2, -1);
-  var p3 = vec2(0.2, -0.9);
+  var p0 = vec2(-0.2, -0.05);
+  var p1 = vec2(-0.2, 0.05);
+  var p2 = vec2(0.2, -0.05);
+  var p3 = vec2(0.2, 0.05);
   arrayOfPoints = [p0, p1, p2, p3];
 
   // Create a buffer on the graphics card,
@@ -114,7 +114,7 @@ function setupGoalObject() {
 
 function setupObjects() {
   var posY = 1;
-	var heightDiff = 0.11;
+  var heightDiff = 0.11;
   // left col
   for (var i = 0; i < 7; i++) {
     var p0 = vec2(-0.61, posY - 0.1);
@@ -168,7 +168,7 @@ function setupBall() {
   var i = 0;
 
   var a = 0.0;
-  var b = -0.85;
+  var b = 0.0;
   var c = 0.05;
   var d = 0.05;
 
@@ -222,6 +222,59 @@ function movePlayerPile(event) {
   gl.uniform2f(mousePositionUniform, clipPlayerX, clipPlayerY);
 }
 
+function gameOver() {
+  gameStarted = 0;
+}
+
+function moveBallUpInAngle() {
+  // Calculate the distance between the ball and the center of the player pile
+  var distanceX = clipBallX - clipPlayerX;
+  var distanceY = clipBallY - clipPlayerY;
+
+  // Calculate the angle based on the x and y distance
+  var angle = (Math.atan(distanceX / distanceY) * 180) / Math.PI;
+
+  // Make sure the angle is facing upwards
+  angle -= 90;
+  // invert the angle
+  angle *= -1;
+
+  // Calculate the new ball direction based on the angle
+  moveBallRight = Math.cos((angle * Math.PI) / 180);
+  moveBallUp = Math.sin((angle * Math.PI) / 180);
+}
+
+function ballCollision() {
+  // Check if the ball hits the right wall
+  if (clipBallX + 0.05 > 1.0) {
+    moveBallRight *= -1.0;
+  }
+
+  // Check if the ball hits the top wall
+  if (clipBallY + 0.05 > 1.0) {
+    moveBallUp *= -1.0;
+  }
+
+  // Check if the ball hits the left wall
+  if (clipBallX - 0.05 < -1.0) {
+    moveBallRight *= -1.0;
+  }
+
+  // Check if the ball hits the bottom wall
+  if (clipBallY - 0.05 < -1.0) {
+    gameOver();
+  }
+
+  // Check if the ball hits the player pile
+  if (
+    clipBallY - 0.05 < clipPlayerY + 0.05 &&
+    clipBallX - 0.05 < clipPlayerX + 0.2 &&
+    clipBallX + 0.05 > clipPlayerX - 0.2
+  ) {
+    moveBallUpInAngle();
+  }
+}
+
 function render() {
   // Force WebGL context to clear the color buffer
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -253,6 +306,8 @@ function render() {
   clipBallX += moveBallRight * speed * gameStarted;
   clipBallY += moveBallUp * speed * gameStarted;
 
+  ballCollision();
+
   gl.uniform2f(ballPositionUniform, clipBallX, clipBallY);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, bufferBall);
@@ -268,12 +323,15 @@ function render() {
 
   gl.drawArrays(gl.TRIANGLE_FAN, 0, n);
 
-	// draw the goal object
-	gl.useProgram(shaderGoalObject);
+  // draw the goal object
+  gl.useProgram(shaderGoalObject);
 
-	gl.bindBuffer(gl.ARRAY_BUFFER, bufferGoalObject);
+  gl.bindBuffer(gl.ARRAY_BUFFER, bufferGoalObject);
 
-  var myPositionGoalObject = gl.getAttribLocation(shaderGoalObject, "myPosition");
+  var myPositionGoalObject = gl.getAttribLocation(
+    shaderGoalObject,
+    "myPosition"
+  );
   gl.vertexAttribPointer(myPositionGoalObject, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(myPositionGoalObject);
 
