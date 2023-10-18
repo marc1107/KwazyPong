@@ -231,22 +231,14 @@ function setupObject(p0, p1, p2, p3) {
   gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayofPoints), gl.STATIC_DRAW);
 }
 
-function changeDirection(event) {
-  // a = 65, d = 68, s = 83, w = 87
+function keyPressed(event) {
+  // space = 32, r = 82
   var keyCode = event.keyCode;
 
-  if (keyCode == 65) {
-    moveRight = -1;
-    moveUp = 0;
-  } else if (keyCode == 68) {
-    moveRight = 1;
-    moveUp = 0;
-  } else if (keyCode == 83) {
-    moveRight = 0;
-    moveUp = -1;
-  } else if (keyCode == 87) {
-    moveRight = 0;
-    moveUp = 1;
+  if (keyCode == 32) {
+    startGame();
+  } else if (keyCode == 82) {
+    resetGame();
   }
 }
 
