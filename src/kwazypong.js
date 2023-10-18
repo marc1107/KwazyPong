@@ -124,17 +124,13 @@ function setupBall() {
   var x = 0.0;
   var y = 0.0;
 
-  var i = 0;
-
-  var a = 0.0;
-  var b = 0.0;
   var c = 0.05;
   var d = 0.05;
 
-  for (i = 0; i < n; i++) {
+  for (var i = 0; i < n; i++) {
     theta = (2 * Math.PI * i) / n;
-    x = a + c * Math.cos(theta);
-    y = b + d * Math.sin(theta);
+    x = c * Math.cos(theta);
+    y = d * Math.sin(theta);
     var p = vec2(x, y);
     arrayOfPointsForCircle.push(p);
   }
@@ -171,6 +167,19 @@ function setColor(color) {
     color = 1;
   }
   return color;
+}
+
+function setupObject(p0, p1, p2, p3) {
+  arrayofPoints = [p0, p1, p2, p3];
+  var height = 0.1;
+  var width = 0.4;
+
+  clipObjectsX.push(p0[0] + width / 2);
+  clipObjectsY.push(p0[1] + height / 2);
+
+  arrBufferObjects.push(gl.createBuffer());
+  gl.bindBuffer(gl.ARRAY_BUFFER, arrBufferObjects[arrBufferObjects.length - 1]);
+  gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayofPoints), gl.STATIC_DRAW);
 }
 
 function setupObjects() {
@@ -216,19 +225,6 @@ function setupObjects() {
     posY -= heightDiff;
     color = setColor(color);
   }
-}
-
-function setupObject(p0, p1, p2, p3) {
-  arrayofPoints = [p0, p1, p2, p3];
-  var height = 0.1;
-  var width = 0.4;
-
-  clipObjectsX.push(p0[0] + width / 2);
-  clipObjectsY.push(p0[1] + height / 2);
-
-  arrBufferObjects.push(gl.createBuffer());
-  gl.bindBuffer(gl.ARRAY_BUFFER, arrBufferObjects[arrBufferObjects.length - 1]);
-  gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayofPoints), gl.STATIC_DRAW);
 }
 
 function keyPressed(event) {
@@ -307,6 +303,15 @@ function moveBallUpInAngle() {
   moveBallUp = Math.sin((angle * Math.PI) / 180);
 }
 
+function removeObject(i) {
+  score += objectColors[i];
+  arrBufferObjects.splice(i, 1);
+  clipObjectsX.splice(i, 1);
+  clipObjectsY.splice(i, 1);
+  objectColors.splice(i, 1);
+  speed *= 1.1;
+}
+
 function ballCollision() {
   gameWon();
   // Check if the ball hits the right wall
@@ -339,11 +344,7 @@ function ballCollision() {
       clipBallX + 0.05 > clipObjectsX[i] - 0.2
     ) {
       moveBallUp *= -1.0;
-      score += objectColors[i];
-      arrBufferObjects.splice(i, 1);
-      clipObjectsX.splice(i, 1);
-      clipObjectsY.splice(i, 1);
-      objectColors.splice(i, 1);
+      removeObject(i);
     }
 
     // check if ball hits the top of the pile
@@ -354,11 +355,7 @@ function ballCollision() {
       clipBallX + 0.05 > clipObjectsX[i] - 0.2
     ) {
       moveBallUp *= -1.0;
-      score += objectColors[i];
-      arrBufferObjects.splice(i, 1);
-      clipObjectsX.splice(i, 1);
-      clipObjectsY.splice(i, 1);
-      objectColors.splice(i, 1);
+      removeObject(i);
     }
 
     // check if ball hits the right of the pile
@@ -369,11 +366,7 @@ function ballCollision() {
       clipBallY + 0.05 > clipObjectsY[i] - 0.05
     ) {
       moveBallRight *= -1.0;
-      score += objectColors[i];
-      arrBufferObjects.splice(i, 1);
-      clipObjectsX.splice(i, 1);
-      clipObjectsY.splice(i, 1);
-      objectColors.splice(i, 1);
+      removeObject(i);
     }
 
     // check if ball hits the left of the pile
@@ -384,11 +377,7 @@ function ballCollision() {
       clipBallY + 0.05 > clipObjectsY[i] - 0.05
     ) {
       moveBallRight *= -1.0;
-      score += objectColors[i];
-      arrBufferObjects.splice(i, 1);
-      clipObjectsX.splice(i, 1);
-      clipObjectsY.splice(i, 1);
-      objectColors.splice(i, 1);
+      removeObject(i);
     }
 
     setScore();
