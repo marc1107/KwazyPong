@@ -7,13 +7,16 @@ var clipPlayerX,
   clipBallX,
   clipBallY,
   clipGoalObjectX,
-  clipGoalObjectY;
+  clipGoalObjectY,
+  clipObjectsX,
+  clipObjectsY;
 var moveRight, moveUp, moveBallRight, moveBallUp;
 var speed;
 var bufferPlayerPile, bufferBall, bufferGoalObject;
 var gameStarted;
 var n;
 var arrBufferObjects;
+var objectColors;
 
 function init() {
   // Set up the canvas
@@ -60,6 +63,8 @@ function init() {
   clipBallY = -0.85;
   clipGoalObjectX = 0.0;
   clipGoalObjectY = 0.75;
+  clipObjectsX = [];
+  clipObjectsY = [];
   speed = 0.01;
   moveRight = 0.0;
   moveUp = 0.0;
@@ -68,6 +73,7 @@ function init() {
   n = 1000;
   gameStarted = 0;
   arrBufferObjects = [];
+  objectColors = [];
 
   colorUniform = gl.getUniformLocation(shaderPlayerPile, "color");
 
@@ -156,9 +162,19 @@ function setupGoalObject() {
   gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW);
 }
 
+function setColor(color) {
+  objectColors.push(color);
+  color++;
+  if (color > 3) {
+    color = 1;
+  }
+  return color;
+}
+
 function setupObjects() {
   var posY = 1;
   var heightDiff = 0.11;
+  var color = 1;
 
   // left col
   for (var i = 0; i < 7; i++) {
@@ -168,19 +184,23 @@ function setupObjects() {
     var p3 = vec2(-0.21, posY);
     setupObject(p0, p1, p2, p3);
     posY -= heightDiff;
+    color = setColor(color);
   }
   posY = 1;
+  color = 1;
   // right col
   for (var i = 0; i < 7; i++) {
-    var p0 = vec2(0.61, posY - 0.1);
-    var p1 = vec2(0.61, posY);
-    var p2 = vec2(0.21, posY - 0.1);
-    var p3 = vec2(0.21, posY);
+    var p0 = vec2(0.21, posY - 0.1);
+    var p1 = vec2(0.21, posY);
+    var p2 = vec2(0.61, posY - 0.1);
+    var p3 = vec2(0.61, posY);
     setupObject(p0, p1, p2, p3);
     posY -= heightDiff;
+    color = setColor(color);
   }
 
   posY = 1;
+  color = 1;
   // middle col
   for (var i = 0; i < 5; i++) {
     posY -= heightDiff;
@@ -192,11 +212,17 @@ function setupObjects() {
     var p3 = vec2(0.2, posY);
     setupObject(p0, p1, p2, p3);
     posY -= heightDiff;
+    color = setColor(color);
   }
 }
 
 function setupObject(p0, p1, p2, p3) {
   arrayofPoints = [p0, p1, p2, p3];
+  var height = 0.1;
+  var width = 0.4;
+
+  clipObjectsX.push(p0[0] + width / 2);
+  clipObjectsY.push(p0[1] + height / 2);
 
   arrBufferObjects.push(gl.createBuffer());
   gl.bindBuffer(gl.ARRAY_BUFFER, arrBufferObjects[arrBufferObjects.length - 1]);
@@ -302,6 +328,65 @@ function ballCollision() {
     gameOver();
   }
 
+  // Check if the ball hits any of the objects
+  for (var i = 0; i < clipObjectsX.length; i++) {
+    // check if ball hits the bottom of the pile
+    if (
+      clipBallY + 0.05 > clipObjectsY[i] - 0.05 &&
+      clipBallY + 0.05 < clipObjectsY[i] - 0.03 &&
+      clipBallX - 0.05 < clipObjectsX[i] + 0.2 &&
+      clipBallX + 0.05 > clipObjectsX[i] - 0.2
+    ) {
+      moveBallUp *= -1.0;
+      arrBufferObjects.splice(i, 1);
+      clipObjectsX.splice(i, 1);
+      clipObjectsY.splice(i, 1);
+      objectColors.splice(i, 1);
+    }
+
+    // check if ball hits the top of the pile
+    if (
+      clipBallY - 0.05 < clipObjectsY[i] + 0.05 &&
+      clipBallY - 0.05 > clipObjectsY[i] + 0.03 &&
+      clipBallX - 0.05 < clipObjectsX[i] + 0.2 &&
+      clipBallX + 0.05 > clipObjectsX[i] - 0.2
+    ) {
+      moveBallUp *= -1.0;
+      arrBufferObjects.splice(i, 1);
+      clipObjectsX.splice(i, 1);
+      clipObjectsY.splice(i, 1);
+      objectColors.splice(i, 1);
+    }
+
+    // check if ball hits the right of the pile
+    if (
+      clipBallX - 0.05 > clipObjectsX[i] + 0.15 &&
+      clipBallX - 0.05 < clipObjectsX[i] + 0.2 &&
+      clipBallY - 0.05 < clipObjectsY[i] + 0.05 &&
+      clipBallY + 0.05 > clipObjectsY[i] - 0.05
+    ) {
+      moveBallRight *= -1.0;
+      arrBufferObjects.splice(i, 1);
+      clipObjectsX.splice(i, 1);
+      clipObjectsY.splice(i, 1);
+      objectColors.splice(i, 1);
+    }
+
+    // check if ball hits the left of the pile
+    if (
+      clipBallX + 0.05 < clipObjectsX[i] - 0.15 &&
+      clipBallX + 0.05 > clipObjectsX[i] - 0.2 &&
+      clipBallY - 0.05 < clipObjectsY[i] + 0.05 &&
+      clipBallY + 0.05 > clipObjectsY[i] - 0.05
+    ) {
+      moveBallRight *= -1.0;
+      arrBufferObjects.splice(i, 1);
+      clipObjectsX.splice(i, 1);
+      clipObjectsY.splice(i, 1);
+      objectColors.splice(i, 1);
+    }
+  }
+
   // Check if the ball hits the player pile
   if (
     clipBallY - 0.05 < clipPlayerY + 0.05 &&
@@ -394,19 +479,12 @@ function render() {
 
     var myColorObject = gl.getUniformLocation(shaderObject, "shapecolor");
 
-    if (i % 7 == 0) {
-      col = 0;
-    }
-
-    if (col == 0) {
+    if (objectColors[i] == 1) {
       gl.uniform4f(myColorObject, 1.0, 0.0, 0.0, 1.0);
-      col = 1;
-    } else if (col == 1) {
+    } else if (objectColors[i] == 2) {
       gl.uniform4f(myColorObject, 0.0, 0.0, 1.0, 1.0);
-      col = 2;
-    } else if (col == 2) {
+    } else if (objectColors[i] == 3) {
       gl.uniform4f(myColorObject, 0.0, 1.0, 0.0, 1.0);
-      col = 0;
     }
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
