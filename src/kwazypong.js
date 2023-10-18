@@ -276,6 +276,8 @@ function setScore() {
 
 function gameOver() {
   gameStarted = 0;
+  score = 0;
+  setScore();
   // show a text that the player lost
   var text = document.getElementById("text");
   text.innerHTML = "You lost!";
