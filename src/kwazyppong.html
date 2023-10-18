@@ -9,10 +9,10 @@
     <script type="text/javascript" src="kwazypong.js"></script>
 
     <script type="x-shader/x-vertex" id="vertex-shader-playerpile">
-          attribute vec4 myPosition;
+      attribute vec4 myPosition;
       uniform vec2 mousePosition;
 
-       void main() {
+      void main() {
        	float xi = myPosition.x;
        	float yi = myPosition.y;
 
@@ -27,12 +27,12 @@
        	gl_Position.z = 0.0;
        	gl_Position.w = 1.0;
 
-            gl_PointSize = 1.0;
-          }
+        gl_PointSize = 1.0;
+      }
     </script>
 
     <script type="x-shader/x-fragment" id="fragment-shader-playerpile">
-         precision mediump float;
+      precision mediump float;
       uniform vec4 shapecolor;
 
       void main() {
@@ -41,21 +41,21 @@
     </script>
 
     <script type="x-shader/x-vertex" id="vertex-shader-ball">
-         attribute vec4 myPosition;
+      attribute vec4 myPosition;
       uniform vec2 position;
 
-         void main() {
-         	gl_Position.x = myPosition.x + position.x;
-					gl_Position.y = myPosition.y + position.y;
-					gl_Position.z = 0.0;
-					gl_Position.w = 1.0;
+			void main() {
+				gl_Position.x = myPosition.x + position.x;
+				gl_Position.y = myPosition.y + position.y;
+				gl_Position.z = 0.0;
+				gl_Position.w = 1.0;
 
-           gl_PointSize = 1.0;
-         }
+				gl_PointSize = 1.0;
+			}
     </script>
 
     <script type="x-shader/x-fragment" id="fragment-shader-ball">
-         precision mediump float;
+      precision mediump float;
       uniform vec4 shapecolor;
 
       void main() {
@@ -78,7 +78,7 @@
     </script>
 
     <script type="x-shader/x-fragment" id="fragment-shader-goalobject">
-         precision mediump float;
+      precision mediump float;
       uniform vec4 shapecolor;
 
       void main() {
@@ -87,17 +87,17 @@
     </script>
 
     <script type="x-shader/x-vertex" id="vertex-shader-object">
-         attribute vec4 myPosition;
+    	attribute vec4 myPosition;
 
-         void main() {
-         	gl_Position = myPosition;
+			void main() {
+			gl_Position = myPosition;
 
-           gl_PointSize = 1.0;
-         }
+				gl_PointSize = 1.0;
+			}
     </script>
 
     <script type="x-shader/x-fragment" id="fragment-shader-object">
-         precision mediump float;
+      precision mediump float;
       uniform vec4 shapecolor;
 
       void main() {
@@ -110,11 +110,13 @@
   <body style="margin: 0" onload="init()" onkeydown="keyPressed(event)">
     <canvas width="512" height="512" id="gl-canvas" onmousemove="movePlayerPile(event)">
     </canvas>
+		<br>
     <button id="startGame" onclick="startGame()">Start Game</button>
 		<button id="resetGame" onclick="resetGame()">Reset Game</button>
+		<br>
 		<!-- create a field which can show a text -->
-		<div id="text"></div>
 		<div id="score"></div>
+		<div id="text"></div>
 		<p>To start the game press Space or click the "Start Game" button<br>
 			To stop the game press R or click the "Reset Game" button</p>
   </body>
