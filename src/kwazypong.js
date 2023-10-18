@@ -17,6 +17,7 @@ var gameStarted;
 var n;
 var arrBufferObjects;
 var objectColors;
+var score;
 
 function init() {
   // Set up the canvas
@@ -74,6 +75,7 @@ function init() {
   gameStarted = 0;
   arrBufferObjects = [];
   objectColors = [];
+  score = 0;
 
   colorUniform = gl.getUniformLocation(shaderPlayerPile, "color");
 
@@ -267,6 +269,11 @@ function movePlayerPile(event) {
   gl.uniform2f(mousePositionUniform, clipPlayerX, clipPlayerY);
 }
 
+function setScore() {
+  var scoreText = document.getElementById("score");
+  scoreText.innerHTML = "Score: " + score;
+}
+
 function gameOver() {
   gameStarted = 0;
   // show a text that the player lost
@@ -338,6 +345,7 @@ function ballCollision() {
       clipBallX + 0.05 > clipObjectsX[i] - 0.2
     ) {
       moveBallUp *= -1.0;
+      score += objectColors[i];
       arrBufferObjects.splice(i, 1);
       clipObjectsX.splice(i, 1);
       clipObjectsY.splice(i, 1);
@@ -352,6 +360,7 @@ function ballCollision() {
       clipBallX + 0.05 > clipObjectsX[i] - 0.2
     ) {
       moveBallUp *= -1.0;
+      score += objectColors[i];
       arrBufferObjects.splice(i, 1);
       clipObjectsX.splice(i, 1);
       clipObjectsY.splice(i, 1);
@@ -366,6 +375,7 @@ function ballCollision() {
       clipBallY + 0.05 > clipObjectsY[i] - 0.05
     ) {
       moveBallRight *= -1.0;
+      score += objectColors[i];
       arrBufferObjects.splice(i, 1);
       clipObjectsX.splice(i, 1);
       clipObjectsY.splice(i, 1);
@@ -380,11 +390,14 @@ function ballCollision() {
       clipBallY + 0.05 > clipObjectsY[i] - 0.05
     ) {
       moveBallRight *= -1.0;
+      score += objectColors[i];
       arrBufferObjects.splice(i, 1);
       clipObjectsX.splice(i, 1);
       clipObjectsY.splice(i, 1);
       objectColors.splice(i, 1);
     }
+
+    setScore();
   }
 
   // Check if the ball hits the player pile
