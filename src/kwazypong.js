@@ -109,53 +109,6 @@ function setupPlayerPile() {
   gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW);
 }
 
-function setupObjects() {
-  var posY = 1;
-  var heightDiff = 0.11;
-
-  // left col
-  for (var i = 0; i < 7; i++) {
-    var p0 = vec2(-0.61, posY - 0.1);
-    var p1 = vec2(-0.61, posY);
-    var p2 = vec2(-0.21, posY - 0.1);
-    var p3 = vec2(-0.21, posY);
-    setupObject(p0, p1, p2, p3);
-    posY -= heightDiff;
-  }
-  posY = 1;
-  // right col
-  for (var i = 0; i < 7; i++) {
-    var p0 = vec2(0.61, posY - 0.1);
-    var p1 = vec2(0.61, posY);
-    var p2 = vec2(0.21, posY - 0.1);
-    var p3 = vec2(0.21, posY);
-    setupObject(p0, p1, p2, p3);
-    posY -= heightDiff;
-  }
-
-  posY = 1;
-  // middle col
-  for (var i = 0; i < 5; i++) {
-    posY -= heightDiff;
-  }
-  for (var i = 0; i < 2; i++) {
-    var p0 = vec2(-0.2, posY - 0.1);
-    var p1 = vec2(-0.2, posY);
-    var p2 = vec2(0.2, posY - 0.1);
-    var p3 = vec2(0.2, posY);
-    setupObject(p0, p1, p2, p3);
-    posY -= heightDiff;
-  }
-}
-
-function setupObject(p0, p1, p2, p3) {
-  arrayofPoints = [p0, p1, p2, p3];
-
-  arrBufferObjects.push(gl.createBuffer());
-  gl.bindBuffer(gl.ARRAY_BUFFER, arrBufferObjects[arrBufferObjects.length - 1]);
-  gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayofPoints), gl.STATIC_DRAW);
-}
-
 function setupBall() {
   var arrayOfPointsForCircle = [];
 
@@ -201,6 +154,53 @@ function setupGoalObject() {
   bufferGoalObject = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, bufferGoalObject);
   gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW);
+}
+
+function setupObjects() {
+  var posY = 1;
+  var heightDiff = 0.11;
+
+  // left col
+  for (var i = 0; i < 7; i++) {
+    var p0 = vec2(-0.61, posY - 0.1);
+    var p1 = vec2(-0.61, posY);
+    var p2 = vec2(-0.21, posY - 0.1);
+    var p3 = vec2(-0.21, posY);
+    setupObject(p0, p1, p2, p3);
+    posY -= heightDiff;
+  }
+  posY = 1;
+  // right col
+  for (var i = 0; i < 7; i++) {
+    var p0 = vec2(0.61, posY - 0.1);
+    var p1 = vec2(0.61, posY);
+    var p2 = vec2(0.21, posY - 0.1);
+    var p3 = vec2(0.21, posY);
+    setupObject(p0, p1, p2, p3);
+    posY -= heightDiff;
+  }
+
+  posY = 1;
+  // middle col
+  for (var i = 0; i < 5; i++) {
+    posY -= heightDiff;
+  }
+  for (var i = 0; i < 2; i++) {
+    var p0 = vec2(-0.2, posY - 0.1);
+    var p1 = vec2(-0.2, posY);
+    var p2 = vec2(0.2, posY - 0.1);
+    var p3 = vec2(0.2, posY);
+    setupObject(p0, p1, p2, p3);
+    posY -= heightDiff;
+  }
+}
+
+function setupObject(p0, p1, p2, p3) {
+  arrayofPoints = [p0, p1, p2, p3];
+
+  arrBufferObjects.push(gl.createBuffer());
+  gl.bindBuffer(gl.ARRAY_BUFFER, arrBufferObjects[arrBufferObjects.length - 1]);
+  gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayofPoints), gl.STATIC_DRAW);
 }
 
 function changeDirection(event) {
